@@ -115,11 +115,10 @@ def getEventLocationByAddress(event):
                 print (f"Geocoded address {event[2]} for event {event[0]}")
             else:
                 print(f"Error: Could not geocode address {event[2]} for event {event[0]}")               
-    
 
+dist_list = [] # list of distances between photographers and events
 
-def optimizePlacement():
-    distList = []
+def find_routes():
     # Create a graph from the street network
     #G = ox.graph_from_bbox((39, -80, 48, -66), network_type='drive')
     G_tut = ox.graph_from_place('Worcester, Massachusetts, USA', network_type='drive', simplify = True)
@@ -146,12 +145,64 @@ def optimizePlacement():
                 route = nx.shortest_path_length(G_tut, orig_node, dest_node, weight ='length')
                 print(f"Shortest path from {photographerAddress} to {eventLocation}: {route}")
                 log.write(f"Shortest path from {photographerAddress} to {eventLocation}: {route}\n")
-                distList.append(photographer, event, route)
+                dist_list.append((photographer, event, route))
             else:
                 print(f"No path found from {photographerAddress} to {eventLocation}")
 
+def sort_list():
+    for dist in dist_list:
+        int(dist[2])
+        print(dist[2])
+    sorted(dist_list, key=lambda x: x[2])
+    for row in dist_list:
+        log.write(f'Distance from photographer {row[0][0]} to event {row[1][0]}: {row[2]}\n')
+
+optimized_list = []
+def optimize_list():
+    for dist in dist_list:
+        name = dist[0][0]
+        if name in optimized_list:
+            continue
+        best_event = dist[2]
+        for rest in dist_list:
+            if (rest[0][0] == name) and (rest[2] < best_event):
+                best_event = rest[1][0]
+        optimized_list.append((name, best_event))
+        for row in optimized_list:
+            log.write(f'Photographer {row[0]} is assigned to event {row[1]}\n')
+
+assignedList = []
+def assignPhotographersToEvents():
+    role = False
+    for event in eventList:
+        log.write(f"appending event {event[0]} to assignedList\n")
+        log.write(f'Assigning {event[8]} photographers to event {event[0]}\n')
+        assignedList.append((event[0]))
+        for dist in dist_list:
+            photographer = dist[0]
+            if (dist[1] == event) and (photographer[6] == 'Captain'):
+                assignedList.append((photographer[0]))
+                break
+        for x in range(int(event[8]) - 1):
+            for dist in dist_list:
+                photographer = dist[0]
+                if (dist[1] == event) and (photographer[0] not in assignedList):
+                    continue
+                if (role == False) and (photographer[6] == 'Experienced'):
+                    assignedList.append(photographer[0])
+                elif (role == True) and (photographer[6] == 'Rookie'):
+                    assignedList.append(photographer[0])
+                role = not role
+    for row in assignedList:
+        s.write(row + '\n')
+                    
+
+# runtime commands
 for photographer in photographerList:
     getLocationByAddress(photographer)
 for event in eventList:
     getEventLocationByAddress(event)
-optimizePlacement()
+find_routes()
+sort_list()
+optimize_list()
+# assignPhotographersToEvents()
