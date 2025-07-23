@@ -2,6 +2,7 @@ import pandas as pd;
 import csv;
 import time;
 import random;
+from datetime import date;
 
 s = open('Schedule.txt', 'w')
 log = open("Log.txt", 'w')
@@ -13,15 +14,12 @@ def location_toggle(location):
         global location_id
         match location:
             case "Pennsylvania":
-                print("p")
                 location_id = 1
                 return 1
             case "Syracuse / Rochester / Buffalo":
-                print("srb")
                 location_id = 2
                 return 1
             case "CT / MA":
-                print("ctma")
                 location_id = 3
                 return 1
             case _:
@@ -48,7 +46,7 @@ def populate_lists(date, loop_reader):
                 continue
             if location_toggle(row[0]) == 0:
                 if row[1] == "":
-                    row[1] = random.randint(1,4)
+                    row[1] = random.randint(1,4) # for testing purposes, assign experience level to any photographer without one
                 if isinstance(row[1], str):
                     row[1] = int(row[1])
                 photographer = (row[0], row[1])
@@ -65,24 +63,33 @@ def populate_lists(date, loop_reader):
     write_lists(main_list, penn_list, srb_list, ctma_list)
 
 def populate_date():
+
     global location_id
-    date = 2
-    csvfile.seek(0)  # Reset to the beginning of the file
-    next(reader)  # Skip the header row
-    second_row = next(reader)  # Read the second row
-    while date < 63:
+    date_idx = 2
+    csvfile.seek(0)
+    next(reader)
+    second_row = next(reader)
+    
+    # Calculate number of iterations based on the number of dates
+    d1 = second_row[2]
+    d2 = second_row[-1]
+    m1 = d1.split("/")
+    m2 = d2.split("/")
+    date1 = date(date.today().year, int(m1[0]), int(m1[1]))
+    date2 = date(date.today().year, int(m2[0]), int(m2[1]))
+    diff = date2 - date1
+    days = diff.days + 2  # Account for the first two columns in the CSV
+
+    while date_idx <= days:
         log.write("\n")
-        log.write(f"Date: {second_row[date]}\n")
+        log.write(f"Date: {second_row[date_idx]}\n")
         csvfile.seek(0)
         loop_reader = csv.reader(csvfile, quoting=csv.QUOTE_ALL)
-        next(loop_reader)  # Write the value in row 2 and column [date] to the log
-        populate_lists(date, loop_reader)
-        date += 1
+        next(loop_reader)
+        populate_lists(date_idx, loop_reader)
+        date_idx += 1
         location_id = 0
         
-
-    
-    
 
 
 def write_lists(main_list, penn_list, srb_list, ctma_list):
