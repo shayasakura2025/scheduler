@@ -10,28 +10,9 @@ log = open("Log.txt", 'w')
 csvfile = open("Copy of Photographer_Availability_May_2025.csv")
 reader = csv.reader(csvfile, quoting=csv.QUOTE_ALL)
 
-location_id = 0
-def location_toggle(location):
-        global location_id
-        match location:
-            case "Pennsylvania":
-                location_id = 1
-                return 1
-            case "Syracuse / Rochester / Buffalo":
-                location_id = 2
-                return 1
-            case "CT / MA":
-                location_id = 3
-                return 1
-            case _:
-                return 0
-        
-def sort_lists(main_list, penn_list, srb_list, ctma_list):
-    main_list.sort(key=lambda x: x[1], reverse=True)
-    penn_list.sort(key=lambda x: x[1], reverse=True)
-    srb_list.sort(key=lambda x: x[1], reverse=True)
-    ctma_list.sort(key=lambda x: x[1], reverse=True)
+# This program reads CSV files containing photographer availability and a list of events, and assigns photographers to events based on their availability and experience level.
 
+# Populate lists of available photographers in each location, then sort and write lists to schedule file
 def populate_lists(date, loop_reader):
     main_list = []
     penn_list = []
@@ -63,6 +44,7 @@ def populate_lists(date, loop_reader):
     sort_lists(main_list, penn_list, srb_list, ctma_list)
     write_lists(main_list, penn_list, srb_list, ctma_list)
 
+# Populate the schedule file with list of available photographers for each date
 def populate_date():
 
     global location_id
@@ -90,9 +72,35 @@ def populate_date():
         populate_lists(date_idx, loop_reader)
         date_idx += 1
         location_id = 0
-        
 
+# Helper function purgatory
 
+# Toggle which list is being populated based on current location
+# return 1 when changing location, otherwise return 0
+location_id = 0
+def location_toggle(location):
+        global location_id
+        match location:
+            case "Pennsylvania":
+                location_id = 1
+                return 1
+            case "Syracuse / Rochester / Buffalo":
+                location_id = 2
+                return 1
+            case "CT / MA":
+                location_id = 3
+                return 1
+            case _:
+                return 0
+
+# Arrange lists of photographers by experience level in descending order
+def sort_lists(main_list, penn_list, srb_list, ctma_list):
+    main_list.sort(key=lambda x: x[1], reverse=True)
+    penn_list.sort(key=lambda x: x[1], reverse=True)
+    srb_list.sort(key=lambda x: x[1], reverse=True)
+    ctma_list.sort(key=lambda x: x[1], reverse=True)
+
+# Write lists of available photographers on the specified date to the schedule file
 def write_lists(main_list, penn_list, srb_list, ctma_list):
     s.write("Main List: \n" + "".join(str(i) for i in main_list))
     s.write("\n")
@@ -103,5 +111,5 @@ def write_lists(main_list, penn_list, srb_list, ctma_list):
     s.write("CT / MA List: \n" + "".join(str(i) for i in ctma_list))
     s.write("\n")
 
-# runtime commands
+# Commands to be executed at runtime
 populate_date()
