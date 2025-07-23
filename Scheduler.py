@@ -5,6 +5,7 @@ import random;
 from datetime import date;
 
 s = open('Schedule.txt', 'w')
+schedule = open("Schedule.xlsx", 'w')
 log = open("Log.txt", 'w')
 csvfile = open("Copy of Photographer_Availability_May_2025.csv")
 reader = csv.reader(csvfile, quoting=csv.QUOTE_ALL)
@@ -42,7 +43,7 @@ def populate_lists(date, loop_reader):
     ctma_event_list = []
     
     for row in loop_reader:
-            if (row[0] == "Photographer") or (row[0] == "") or (row[date] == "True"):
+            if (row[0] == "Photographer") or (row[0] == "") or (row[date] == "TRUE"):
                 continue
             if location_toggle(row[0]) == 0:
                 if row[1] == "":
@@ -78,11 +79,11 @@ def populate_date():
     date1 = date(date.today().year, int(m1[0]), int(m1[1]))
     date2 = date(date.today().year, int(m2[0]), int(m2[1]))
     diff = date2 - date1
-    days = diff.days + 2  # Account for the first two columns in the CSV
+    days = diff.days
 
-    while date_idx <= days:
-        log.write("\n")
-        log.write(f"Date: {second_row[date_idx]}\n")
+    while date_idx <= (days + 2): # Account for the first two columns in the CSV
+        s.write("\n")
+        s.write(f"Date: {second_row[date_idx]}\n")
         csvfile.seek(0)
         loop_reader = csv.reader(csvfile, quoting=csv.QUOTE_ALL)
         next(loop_reader)
@@ -93,14 +94,14 @@ def populate_date():
 
 
 def write_lists(main_list, penn_list, srb_list, ctma_list):
-    log.write("Main List: \n" + "".join(str(i) for i in main_list))
-    log.write("\n")
-    log.write("Pennsylvania List: \n" + "".join(str(i) for i in penn_list))
-    log.write("\n")
-    log.write("Syracuse / Rochester / Buffalo List: \n" + "".join(str(i) for i in srb_list))
-    log.write("\n")
-    log.write("CT / MA List: \n" + "".join(str(i) for i in ctma_list))
-    log.write("\n")
+    s.write("Main List: \n" + "".join(str(i) for i in main_list))
+    s.write("\n")
+    s.write("Pennsylvania List: \n" + "".join(str(i) for i in penn_list))
+    s.write("\n")
+    s.write("Syracuse / Rochester / Buffalo List: \n" + "".join(str(i) for i in srb_list))
+    s.write("\n")
+    s.write("CT / MA List: \n" + "".join(str(i) for i in ctma_list))
+    s.write("\n")
 
 # runtime commands
 populate_date()
