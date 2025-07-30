@@ -29,7 +29,7 @@ def populate_photographer_lists(date, loop_reader):
                 continue
             if location_toggle(row[0]) == 0:
                 if row[1] == "":
-                    row[1] = random(1, 4) # for testing purposes, assign experience level to any photographer without one
+                    row[1] = random.randrange(1, 4) # for testing purposes, assign experience level to any photographer without one
                 if isinstance(row[1], str):
                     row[1] = int(row[1])
                 photographer = (row[0], row[1], "")
@@ -64,7 +64,7 @@ def populate_event_lists(current_date, loop_reader):
         if current_date == date:
             captain = row[8].split(";")
             captain = captain[0]
-            event = (row[1], row[4], row[5], row[7], captain)
+            event = (row[1], date, row[4], row[5], row[7], captain)
             region = randomize_region()
             match region:
                 case "Main":
@@ -80,14 +80,17 @@ def populate_event_lists(current_date, loop_reader):
 
 def populate_events():
     # Populate events with photographers, prioritizing previous captains
-    for event in main_event_list:
-        e.write(str(event[0]) + "\n")
+    for e_idx, event in enumerate(main_event_list):
+        start_time = datetime.datetime.strptime(event[2], "%I:%M %p")
+        run_time = event[3]
+        previous_captain = event[5]
         event_staff = []
-        start_time = datetime.datetime.strptime(event[1], "%I:%M %p")
-        e.write(str(start_time) + "\n")
-        run_time = event[2]
-        staff_needed = event[3]
-        previous_captain = event[4]
+        if event[4] != "":
+            staff_needed = int(event[4])
+        else:
+            staff_needed = 2
+        
+        # Check if previous year's captain is available, add them if they are, otherwise assign a new captain
         for idx, photographer in enumerate(main_list):
             p_name = photographer[0]
             p_level = photographer[1]
@@ -101,12 +104,47 @@ def populate_events():
                 break
             elif (p_level == 4) and (p_available <= start_time) and (captain == ""):
                 captain = p_name
+        level_toggle = False
         event_staff.append(captain)
         buffer_time = datetime.timedelta(hours=6)
         p_updated = (p_name, p_level, start_time + buffer_time)
         main_list[idx] = p_updated
-        #while (event_staff.len <= staff_needed - 1):
-        e.write("".join(str(i) for i in event_staff) + "\n")
+        while len(event_staff) < staff_needed:
+            for idx, photographer in enumerate(main_list):
+                p_name = photographer[0]
+                p_level = photographer[1]
+                if photographer[2] != "":
+                    p_available = photographer[2]
+                else:
+                    p_available = start_time
+                if (p_available <= start_time) and (p_name not in event_staff):
+                    match level_toggle:
+                        case False:
+                            if p_level == 2:
+                                event_staff.append(p_name)
+                                buffer_time = datetime.timedelta(hours=6)
+                                p_updated = (p_name, p_level, start_time + buffer_time)
+                                main_list[idx] = p_updated
+                        case True:
+                            if p_level == 3 or p_level == 4:
+                                event_staff.append(p_name)
+                                buffer_time = datetime.timedelta(hours=6)
+                                p_updated = (p_name, p_level, start_time + buffer_time)
+                                main_list[idx] = p_updated
+                    level_toggle = not level_toggle
+
+                        
+
+        
+        # Fill in remaining photographers for the event
+
+                
+                
+
+            
+                        
+                
+
 
 # Populate the schedule file with list of available photographers for each date
 def populate_date():
